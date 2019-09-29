@@ -132,12 +132,16 @@ router.get('/', auth, async(req, res)=>{
     const page = Number(req.query.page) || PAGE;
     const skip =  (page - 1) * limit;
     
-    //get all wordLists
+    // get all wordLists
     const wordLists = await WordList.find(condition)
     .limit(limit)
     .skip(skip)
     .sort('-dateCreate')
-    .select('-__v -password');
+    .populate({
+        path: 'favoriteWordList',
+        match: {user: req.user._id}
+    })
+    .select('-__v -password -id');
 
     const wordListsCount = await WordList.find(condition).countDocuments();
 
@@ -190,11 +194,15 @@ router.get('/:id', [auth, validateObjectId], async (req, res)=>{
     //find the wordList with this given id
     const wordList = await WordList.findOne({
         _id: req.params.id
+    }).populate({
+        path: 'favoriteWordList',
+        match: {user: req.user._id}
     });
+
     if(!wordList) return res.status(404).json({error: 'The wordList with this given id not found.'});
 
     // send wordList to client
-    res.json({result: _.pick(wordList, ['_id', 'title', 'visible', 'addWordBy', 'user', 'dateCreate'])});
+    res.json({result: _.pick(wordList, ['_id', 'title', 'visible', 'favoriteWordList', 'addWordBy', 'user', 'dateCreate'])});
 });
 
 router.put('/:id', [auth, validateObjectId], async(req, res)=>{

@@ -46,7 +46,17 @@ const wordListSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
-});
+},
+{toJSON: { virtuals: true }});
+
+wordListSchema.virtual('favoriteWordList', {
+    ref: 'FavoriteWordList',
+    localField: '_id',
+    foreignField: 'wordList',
+    justOne: true,
+    options: { select: '_id'}
+})
+
 
 wordListSchema.methods.calculateHash = async function(){
     const salt = await bcrypt.genSalt(12);
