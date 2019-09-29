@@ -6,7 +6,6 @@ const auth = require('../middlewares/auth');
 const validateObjectId = require('../middlewares/validateObjectId');
 const _ = require('lodash');
 const Joi = require('joi');
-const config = require('config');
 
 const PAGE = 1;
 const LIMIT = 50;
@@ -21,14 +20,12 @@ function validateQueryString(query){
 
 function createPreviousLink(count, skip, limit, page){
     return (skip >=1 && (skip + limit) <= count)?
-        'http://' + config.get('server.hostname') + ':' + config.get('server.port') +
-        `/api/favoriteWordLists?page=${page-1}&limit=${limit}` : undefined;
+        `api/favoriteWordLists?page=${page-1}&limit=${limit}` : undefined;
 }
 
 function createNextLink(count, skip, limit, page){
     return (count > (skip + limit))?
-        'http://' + config.get('server.hostname') + ':' + config.get('server.port') +
-        `/api/favoriteWordLists?page=${(page+1)}&limit=${limit}` : undefined;
+        `api/favoriteWordLists?page=${(page+1)}&limit=${limit}` : undefined;
 }
 
 router.get('/', auth, async(req, res)=>{
