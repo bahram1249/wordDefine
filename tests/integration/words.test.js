@@ -206,7 +206,7 @@ describe('/api/words', () => {
             expect(res.body.result.name).toBe(word.name);
             expect(res.body.result.definition).toBe(word.definition);
             expect(res.body.result.wordList).toBe(wordList._id.toHexString());
-            expect(res.body.result.user).toBe(user._id.toHexString());
+            expect(res.body.result.user).toMatchObject({_id: user._id.toHexString(), name: user.name});
         });
     });
 

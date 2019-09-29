@@ -82,10 +82,9 @@ describe('/api/wordLists', () => {
         }
 
         it('Should get all wordLists', async() => {
-            const userId = user._id;
             const wordLists = [
-                { title: 'testTitle1', user: userId },
-                { title: 'testTitle2', user: userId }
+                { title: 'testTitle1', user: user._id },
+                { title: 'testTitle2', user: user._id }
             ]
             await WordList.insertMany(wordLists);
 
@@ -93,14 +92,13 @@ describe('/api/wordLists', () => {
 
             expect(res.status).toBe(200);
             expect(res.body.result.length).toBe(wordLists.length);
-            expect(res.body.result[0].user).toBe(userId.toHexString());
+            expect(res.body.result[0].user).toMatchObject({ _id: user._id.toHexString(), name: user.name});
        });
 
        it('Should return only 1 result with limit 1', async () => {
-            const userId = user._id;
             const wordLists = [
-                { title: 'testTitle1', user: userId },
-                { title: 'testTitle2', user: userId }
+                { title: 'testTitle1', user: user._id },
+                { title: 'testTitle2', user: user._id }
             ]
             await WordList.insertMany(wordLists);
 
