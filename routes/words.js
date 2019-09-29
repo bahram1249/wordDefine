@@ -6,7 +6,6 @@ const { EVERYONE, USER_WITH_PASSWORD } = require('../models/wordList').enum;
 const auth = require('../middlewares/auth');
 const accessToSeenWord = require('../middlewares/accessToSeenWord');
 const validateObjectId = require('../middlewares/validateObjectId');
-const config = require('config');
 const Joi = require('joi');
 const _ = require('lodash');
 require('express-async-errors');
@@ -58,14 +57,12 @@ function validatePassword(wordListPassword){
 
 function createPreviousLink(count, skip, limit, page){
     return (skip >=1 && (skip + limit) <= count)?
-        'http://' + config.get('server.hostname') + ':' + config.get('server.port') +
-        `/api/words?page=${page-1}&limit=${limit}` : undefined;
+        `api/words?page=${page-1}&limit=${limit}` : undefined;
 }
 
 function createNextLink(count, skip, limit, page){
     return (count > (skip + limit))?
-        'http://' + config.get('server.hostname') + ':' + config.get('server.port') +
-        `/api/words?page=${(page+1)}&limit=${limit}` : undefined;
+        `api/words?page=${(page+1)}&limit=${limit}` : undefined;
 }
 
 router.get('/', [auth, accessToSeenWord], async(req, res)=>{
@@ -84,6 +81,10 @@ router.get('/', [auth, accessToSeenWord], async(req, res)=>{
     .limit(limit)
     .skip(skip)
     .sort('-dateCreate')
+    .populate({
+        path: 'user',
+        select: '_id name'
+    })
     .select('-__v');
 
     const wordsCount = await Word.find({
@@ -127,7 +128,10 @@ router.post('/', auth, async(req, res)=>{
 
 router.get('/:id', [auth, validateObjectId, accessToSeenWord], async(req, res)=>{
     
-    const word = await Word.findById(req.params.id);
+    const word = await Word.findById(req.params.id).populate({
+        path: 'user',
+        select: '_id name'
+    });
     if(!word) return res.status(404).json({error: "The word with this given id not found."});
 
     res.json({

@@ -9,7 +9,6 @@ const validateObjectId = require('../middlewares/validateObjectId');
 const _ = require('lodash');
 const Joi = require('joi');
 const winston = require('winston');
-const config = require('config');
 require('express-async-errors');
 
 //constant
@@ -106,14 +105,12 @@ async function updateWordList(wordList, req) {
 
 function createPreviousLink(count, skip, limit, page, createBy){
     return (skip >=1 && (skip + limit) <= count)?
-        'http://' + config.get('server.hostname') + ':' + config.get('server.port') +
-        `/api/wordLists?createBy=${createBy}&page=${page-1}&limit=${limit}` : undefined;
+        `api/wordLists?createBy=${createBy}&page=${page-1}&limit=${limit}` : undefined;
 }
 
 function createNextLink(count, skip, limit, page, createBy){
     return (count > (skip + limit))?
-        'http://' + config.get('server.hostname') + ':' + config.get('server.port') +
-        `/api/wordLists?createBy=${createBy}&page=${(page+1)}&limit=${limit}` : undefined;
+        `api/wordLists?createBy=${createBy}&page=${(page+1)}&limit=${limit}` : undefined;
 }
 
 router.get('/', auth, async(req, res)=>{
@@ -140,6 +137,10 @@ router.get('/', auth, async(req, res)=>{
     .populate({
         path: 'favoriteWordList',
         match: {user: req.user._id}
+    })
+    .populate({
+        path: 'user',
+        select: '_id name'
     })
     .select('-__v -password -id');
 
@@ -197,6 +198,9 @@ router.get('/:id', [auth, validateObjectId], async (req, res)=>{
     }).populate({
         path: 'favoriteWordList',
         match: {user: req.user._id}
+    }).populate({
+        path: 'user',
+        select: '_id name'
     });
 
     if(!wordList) return res.status(404).json({error: 'The wordList with this given id not found.'});
