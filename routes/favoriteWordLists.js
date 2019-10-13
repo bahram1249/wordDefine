@@ -100,7 +100,7 @@ router.delete('/', auth, async(req, res)=>{
 });
 
 router.delete('/:id', [auth, validateObjectId], async(req, res)=>{
-    const favoriteWordList = await FavoriteWordList.findOneAndRemove({
+    const favoriteWordList = await FavoriteWordList.findOneAndDelete({
         user: req.user._id,
         _id: req.params.id
     });
