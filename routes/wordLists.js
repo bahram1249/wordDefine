@@ -142,7 +142,7 @@ router.get('/', auth, async(req, res)=>{
         path: 'user',
         select: '_id name'
     })
-    .select('-__v -password -id');
+    .select('-__v -password -passwordChangeDate -id');
 
     const wordListsCount = await WordList.find(condition).countDocuments();
 
