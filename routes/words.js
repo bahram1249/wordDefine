@@ -41,12 +41,13 @@ function accessToModifyWord(wordList, word, req){
 
 async function updateWord(word, req) {
     word.name = req.body.name;
-    if (req.body.definition)
-        word.definition = req.body.definition;
-    if(req.body.examples)
-        word.examples = req.body.examples;
-    if (req.body.lang)
-        word.lang = req.body.lang;
+
+    if (req.body.definition) word.definition = req.body.definition;
+
+    if(req.body.examples) word.examples = req.body.examples;
+
+    if (req.body.lang) word.lang = req.body.lang;
+
     await word.save();
 }
 
@@ -114,7 +115,8 @@ router.post('/', auth, async(req, res)=>{
     });
 
     // adding a word in database
-    let word = _.pick(req.body, ['name', 'definition', 'examples', 'lang', 'wordList']);
+    let word = _.pick(req.body,
+        ['name', 'definition', 'examples', 'lang', 'wordList']);
     word.user = req.user._id;
     word = new Word(word);
     await word.save();
@@ -122,7 +124,9 @@ router.post('/', auth, async(req, res)=>{
     // send word to client
     res.json({
         result: _.pick(word,
-            ['_id', 'name', 'definition', 'examples', 'lang', 'dateCreate', 'wordList', 'user'])
+            ['_id', 'name', 'definition', 'examples', 'lang',
+            'dateCreate', 'wordList', 'user']
+            )
     });
 });
 
@@ -132,11 +136,15 @@ router.get('/:id', [auth, validateObjectId, accessToSeenWord], async(req, res)=>
         path: 'user',
         select: '_id name'
     });
-    if(!word) return res.status(404).json({error: "The word with this given id not found."});
+
+    if(!word) return res.status(404)
+                        .json({error: "The word with this given id not found."});
 
     res.json({
         result: _.pick(word,
-            ['_id', 'name', 'definition', 'examples', 'lang', 'dateCreate', 'wordList', 'user'])
+            ['_id', 'name', 'definition', 'examples', 'lang',
+            'dateCreate', 'wordList', 'user']
+            )
     });
 });
 
@@ -149,7 +157,8 @@ router.put('/:id', [auth, validateObjectId], async(req, res)=>{
     let word = await Word.findOne({
         _id: req.params.id
     });
-    if(!word) return res.status(404).json({error: "The word with this given id not founded!"});
+    if(!word) return res.status(404)
+                    .json({error: "The word with this given id not founded!"});
 
     // valid or invalid wordList
     const wordList = await WordList.findById(req.body.wordList);
@@ -171,7 +180,9 @@ router.put('/:id', [auth, validateObjectId], async(req, res)=>{
 
     res.json({
         result: _.pick(word,
-            ['_id', 'name', 'definition', 'examples','lang', 'wordList', 'user', 'dateCreate'])
+            ['_id', 'name', 'definition', 'examples','lang',
+            'wordList', 'user', 'dateCreate']
+            )
     });
 });
 
@@ -180,22 +191,26 @@ router.delete('/:id', [auth, validateObjectId], async(req, res)=>{
     let word = await Word.findOne({
         _id: req.params.id
     });
-    if(!word) return res.status(404).json({error: 'The word with this given id not founded.'});
+    if(!word) return res.status(404)
+                    .json({error: 'The word with this given id not founded.'});
 
     // find the wordList of this word
     const wordList = await WordList.findById(word.wordList);
-    if(!wordList) return res.status(404).json({error: 'The word with this given id not founded.'});
+    if(!wordList) return res.status(404)
+                    .json({error: 'The word with this given id not founded.'});
 
     // is this user have access to delete this word or not ?
     // owner the wordList or owner the word can delete this word
     const haveAccess = accessToModifyWord(wordList, word, req);
-    if(!haveAccess) return res.status(403).json({error: "You don't access to delete this word"});
+    if(!haveAccess) return res.status(403)
+                        .json({error: "You don't access to delete this word"});
 
     word = await word.remove();
 
     res.json({
         result: _.pick(word,
-            ['_id', 'name', 'definition', 'examples', 'lang', 'wordList', 'user', 'dateCreate'])
+            ['_id', 'name', 'definition', 'examples', 'lang',
+            'wordList', 'user', 'dateCreate'])
     });
 });
 

@@ -22,7 +22,8 @@ async function haveAccessToGetToken(wordList, req, res) {
     else if (wordList.visible == USER_WITH_PASSWORD){
         // validate password
         const {error} = validatePassword(req.body);
-        if(error) return res.status(400).json({error: error.details[0].message});
+        if(error) return false
+        //return res.status(400).json({error: error.details[0].message});
         haveAccess = await wordList.validPassword(req.body.password);
     }        
     return haveAccess;
@@ -123,6 +124,12 @@ router.get('/', auth, async(req, res)=>{
     if(req.query.createBy !== EVERYONE){
         condition.user = req.user._id;
         createBy = ONLY_ME;
+    } else {
+        // select all wordList from this user or select only everyone or userWithPassword
+        condition.$or = [
+            {'user': req.user._id},
+            {visible: {$in: ['everyone', 'userWithPassword']}}
+        ]
     }
 
     const limit = Number(req.query.limit) || LIMIT;
@@ -164,10 +171,18 @@ router.post('/', auth, async (req, res)=>{
    wordList.user = req.user._id;
    wordList = new WordList(wordList);
    if (req.body.password) await wordList.calculateHash();
-   await wordList.save();
+   await wordList.save()
+
+   // change user response
+   wordList = wordList.toObject()
+   wordList.user = {
+       _id: req.user._id,
+       name: req.user.name
+   }
 
    // send wordList to client
-   res.json({result: _.pick(wordList, ['_id', 'title', 'visible', 'addWordBy', 'user', 'dateCreate'])});
+   res.json({result: _.pick(wordList,
+            ['_id', 'title', 'visible', 'addWordBy', 'user', 'dateCreate'])});
 });
 
 router.delete('/', auth, async(req, res)=>{
@@ -176,14 +191,14 @@ router.delete('/', auth, async(req, res)=>{
         user: req.user._id
     }).select('_id');
     
-    wordLists = wordLists.map(wordList => wordList._id);
+    wordListIds = wordLists.map(wordList => wordList._id);
 
-    if(wordLists){
-        deleteManyWordFromManyWordList(wordLists);
-        deleteManyFavoriteWordListFromManyWordList(wordLists);
+    if(wordListIds){
+        deleteManyWordFromManyWordList(wordListIds);
+        deleteManyFavoriteWordListFromManyWordList(wordListIds);
         // delete all wordList
         await WordList.deleteMany({
-            _id: {$in: wordLists}
+            _id: {$in: wordListIds}
         });
     }
 
@@ -203,10 +218,14 @@ router.get('/:id', [auth, validateObjectId], async (req, res)=>{
         select: '_id name'
     });
 
-    if(!wordList) return res.status(404).json({error: 'The wordList with this given id not found.'});
+    if(!wordList) return res.status(404)
+                        .json({error: 'The wordList with this given id not found.'});
 
     // send wordList to client
-    res.json({result: _.pick(wordList, ['_id', 'title', 'visible', 'favoriteWordList', 'addWordBy', 'user', 'dateCreate'])});
+    res.json({result: _.pick(wordList, 
+        ['_id', 'title', 'visible', 'favoriteWordList', 'addWordBy',
+        'user', 'dateCreate'])}
+        );
 });
 
 router.put('/:id', [auth, validateObjectId], async(req, res)=>{
@@ -218,36 +237,53 @@ router.put('/:id', [auth, validateObjectId], async(req, res)=>{
     let wordList = await WordList.findOne({
         _id: req.params.id,
         user: req.user._id
+    }).populate({
+        path: 'user',
+        select: '_id name'
     });
-    if(!wordList) return res.status(404).json({error: 'The wordList with this given id not found.'});
+    if(!wordList) return res.status(404)
+                    .json({error: 'The wordList with this given id not found.'});
 
     // update new wordList
     await updateWordList(wordList, req);
 
     // send new wordList to client
-    res.json({result: _.pick(wordList, ['_id', 'title', 'visible', 'addWordBy', 'user', 'dateCreate'])});
+    res.json({result: _.pick(wordList,
+        ['_id', 'title', 'visible', 'addWordBy', 'user', 'dateCreate'])});
 });
 
 router.delete('/:id', [auth, validateObjectId], async(req, res)=>{
+
+    let wordList = await WordList.findOne({
+        _id: req.params.id
+    })
+
+    if(!wordList) return res.status(404)
+                    .json({error: 'The wordList with this given id not found.'});
+
+
     // find and remove the wordList with this given id
-    const wordList = await WordList.findOneAndRemove({
-        _id: req.params.id,
-        user: req.user._id
-    });
-    if(!wordList) return res.status(404).json({error: 'The wordList with this given id not found.'});
+    wordList = await WordList.findOneAndRemove({
+                    _id: req.params.id,
+                    user: req.user._id
+                });
+    if(!wordList) return res.status(403)
+                    .json({error: 'You have not access to delete this wordList'});
 
     // remove all word in the wordList
     deleteManyWordFromOneWordList(req.params.id);
     // remove all favoriteWordList from this wordList
     deleteManyFavoriteWordListFromOneWordList(req.params.id);
 
-    res.json({result: _.pick(wordList, ['_id', 'title', 'visible', 'addWordBy', 'user', 'dateCreate'])});
+    res.json({result: _.pick(wordList,
+            ['_id', 'title', 'visible', 'addWordBy', 'user', 'dateCreate'])});
 });
 
 router.post('/token/:id', [auth, validateObjectId], async(req, res)=>{
     // find the wordList with this given id
     const wordList = await WordList.findById(req.params.id);
-    if(!wordList) return res.status(404).json({error: "the wordList with this given id not founded."});
+    if(!wordList) return res.status(404)
+                    .json({error: "the wordList with this given id not founded."});
     
     const haveAccess = await haveAccessToGetToken(wordList, req, res);
     if(!haveAccess) return res.status(403).json({

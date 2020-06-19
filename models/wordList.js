@@ -54,7 +54,7 @@ wordListSchema.virtual('favoriteWordList', {
     localField: '_id',
     foreignField: 'wordList',
     justOne: true,
-    options: { select: '_id'}
+    options: { select: '_id dateSubmitted'}
 })
 
 

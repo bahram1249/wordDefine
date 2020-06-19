@@ -41,6 +41,12 @@ router.get('/', auth, async(req, res)=>{
     const favoriteWordLists = await FavoriteWordList.find({
         user: req.user._id
     })
+    .populate({
+        path: 'wordList',
+        select: '_id title visible addWordBy user dateCreate',
+        populate: {path: 'user', select: '_id name'}
+    })
+    .sort('-dateSubmitted')
     .limit(limit)
     .skip(skip)
     .select('-__v');
@@ -57,12 +63,20 @@ router.get('/', auth, async(req, res)=>{
 });
 
 router.get('/:id', [auth , validateObjectId], async(req, res)=>{
-    const favoriteWordList = await FavoriteWordList.findById(req.params.id);
+    const favoriteWordList = await FavoriteWordList.findById(req.params.id)
+               .populate({
+                            path: 'wordList',
+                            select: '_id title visible addWordBy user dateCreate',
+                            populate: {path: 'user', select: '_id name'}
+    });
+    
     if(!favoriteWordList) return res.status(404).json({
         error: 'The favoriteWordList with this given id not founded.'
     });
 
-    res.json({result: _.pick(favoriteWordList, ['_id', 'wordList', 'user', 'dateSubmitted'])});
+    res.json({
+        result: _.pick(favoriteWordList,
+                        ['_id', 'wordList', 'user', 'dateSubmitted'])});
 });
 
 router.post('/', auth, async(req, res)=>{
@@ -79,7 +93,8 @@ router.post('/', auth, async(req, res)=>{
         wordList: req.body.wordList,
         user: req.user._id
     });
-    if(favoriteWordList) return res.status(400).json({error: 'this favoriteWordList is already exist.'})
+    if(favoriteWordList) return res.status(400)
+                        .json({error: 'this favoriteWordList is already exist.'})
 
     // create favoriteWordList in db
     favoriteWordList = new FavoriteWordList({
@@ -88,7 +103,9 @@ router.post('/', auth, async(req, res)=>{
     });
     await favoriteWordList.save();
 
-    res.json({result: _.pick(favoriteWordList, ['_id', 'wordList', 'user', 'dateSubmitted'])});
+    res.json({
+        result: _.pick(favoriteWordList,
+                                ['_id', 'wordList', 'user', 'dateSubmitted'])});
 });
 
 router.delete('/', auth, async(req, res)=>{
@@ -108,7 +125,9 @@ router.delete('/:id', [auth, validateObjectId], async(req, res)=>{
         error: 'The favoriteWordList with this given id not founded.'
     });
     
-    return res.json({result: _.pick(favoriteWordList, ['_id', 'wordList', 'user', 'dateSubmitted'])});
+    return res.json({
+        result: _.pick(favoriteWordList,
+                            ['_id', 'wordList', 'user', 'dateSubmitted'])});
 });
 
 module.exports = router;

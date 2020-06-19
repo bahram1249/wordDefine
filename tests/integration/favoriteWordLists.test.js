@@ -75,7 +75,7 @@ describe('/api/favoriteWordLists', () => {
             expect(res.status).toBe(200);
             expect(res.body.result).toBeTruthy();
             expect(res.body.result._id).toBe(favoriteWordList._id.toHexString());
-            expect(res.body.result.wordList).toBe(wordList._id.toHexString());
+            expect(res.body.result.wordList._id).toBe(wordList._id.toHexString());
             expect(res.body.result.user).toBe(user._id.toHexString());
         });
     });

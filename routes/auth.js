@@ -15,11 +15,18 @@ router.post('/', async(req, res)=>{
 
     // check if the password is true
     const validPassword = await user.validPassword(req.body.password);
-    if(!validPassword) return res.status(400).json({error: 'Invalid Email or Password'});
+    if(!validPassword) return res.status(400)
+                                    .json({error: 'Invalid Email or Password'});
 
     // if every thing is ok send the authentication
     const token = user.generateAuthToken();
-    res.header('x-auth-token', token).json({result: token});
+
+    res.header('x-auth-token', token).json({
+        result: {
+            token,
+            userId: user.id
+        }
+    });
 });
 
 function validate(user){

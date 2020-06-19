@@ -4,6 +4,10 @@ const config = require('config');
 const bcrypt = require('bcrypt');
 const Joi = require('joi');
 
+const profilePhotoSchema = new mongoose.Schema({
+    path: String,
+    contentType: String
+});
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -17,6 +21,17 @@ const userSchema = new mongoose.Schema({
         match: /^[a-zA-Z0-9_%+.-]+@[a-zA-Z0-9_.-]+[.][a-z-A-Z]{2,}$/,
         required: true,
         unique: true
+    },
+    // profilePhoto: {
+    //     type: {
+    //         contentType: String,
+    //         data: Buffer
+    //     },
+    //     required: false
+    // },
+    profilePhoto: {
+        type: profilePhotoSchema,
+        required: false
     },
     password: {
         type: String,
