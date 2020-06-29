@@ -13,6 +13,8 @@ require('express-async-errors');
 const PAGE = 1;
 const LIMIT = 50;
 
+
+
 function validateQueryString(query){
     const schema = {
         page: Joi.number().min(1),
@@ -35,7 +37,7 @@ async function accessToAddWord(wordList, req){
 
 function accessToModifyWord(wordList, word, req){
     if(wordList.user == req.user._id) return true;
-    else if(word.user == req.user._id) return true;
+    else if(word.user._id == req.user._id) return true;
     return false;
 }
 
@@ -121,6 +123,11 @@ router.post('/', auth, async(req, res)=>{
     word = new Word(word);
     await word.save();
 
+    word = word.toObject()
+    word.user = {
+        _id: req.user._id,
+        name: req.user.name
+    }
     // send word to client
     res.json({
         result: _.pick(word,
@@ -156,6 +163,9 @@ router.put('/:id', [auth, validateObjectId], async(req, res)=>{
     // find the word that client want to update
     let word = await Word.findOne({
         _id: req.params.id
+    }).populate({
+        path: 'user',
+        select: '_id name'
     });
     if(!word) return res.status(404)
                     .json({error: "The word with this given id not founded!"});

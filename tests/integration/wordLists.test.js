@@ -188,7 +188,7 @@ describe('/api/wordLists', () => {
             const wl = await WordList.findById(res.body.result._id);
 
             expect(res.status).toBe(200);
-            expect(res.body.result.user).toBe(user._id.toHexString());
+            expect(res.body.result.user._id).toBe(user._id.toHexString());
             expect(res.body.result.title).toBe(wordList.title);
             expect(res.body.result.visible).toBe(EVERYONE);
             expect(res.body.result.addWordBy).toBe(ONLY_ME);

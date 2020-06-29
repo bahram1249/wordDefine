@@ -206,7 +206,8 @@ describe('/api/words', () => {
             expect(res.body.result.name).toBe(word.name);
             expect(res.body.result.definition).toBe(word.definition);
             expect(res.body.result.wordList).toBe(wordList._id.toHexString());
-            expect(res.body.result.user).toMatchObject({_id: user._id.toHexString(), name: user.name});
+            expect(res.body.result.user)
+                .toMatchObject({_id: user._id.toHexString(), name: user.name});
         });
     });
 
@@ -247,7 +248,7 @@ describe('/api/words', () => {
 
             expect(res.status).toBe(200);
             expect(res.body.result).toBeTruthy();
-            expect(res.body.result.user).toBe(user._id.toHexString());
+            expect(res.body.result.user._id).toBe(user._id.toHexString());
             expect(res.body.result.wordList).toBe(wordList._id.toHexString());
         });
 
@@ -298,7 +299,7 @@ describe('/api/words', () => {
 
                 expect(res.status).toBe(200);
                 expect(res.body.result).toBeTruthy();
-                expect(res.body.result.user).toBe(newUser._id.toHexString());
+                expect(res.body.result.user._id).toBe(newUser._id.toHexString());
                 expect(res.body.result.wordList).toBe(wordList._id.toHexString());
                 expect(findWord).toBeTruthy();
             });
@@ -316,7 +317,7 @@ describe('/api/words', () => {
     
                 expect(res.status).toBe(200);
                 expect(res.body.result).toBeTruthy();
-                expect(res.body.result.user).toBe(newUser._id.toHexString());
+                expect(res.body.result.user._id).toBe(newUser._id.toHexString());
                 expect(res.body.result.wordList).toBe(wordList._id.toHexString());
             });
         });
@@ -367,7 +368,7 @@ describe('/api/words', () => {
 
             expect(res.status).toBe(200);
             expect(res.body.result._id).toBe(word._id.toHexString());
-            expect(res.body.result.user).toBe(newUser._id.toHexString());
+            expect(res.body.result.user._id).toBe(newUser._id.toHexString());
             expect(res.body.result.name).toBe(newWord.name);
             expect(res.body.result.lang).toBe(newWord.lang);
         });
@@ -393,7 +394,7 @@ describe('/api/words', () => {
 
             expect(res.status).toBe(200);
             expect(res.body.result._id).toBe(word._id.toHexString());
-            expect(res.body.result.user).toBe(newUser._id.toHexString());
+            expect(res.body.result.user._id).toBe(newUser._id.toHexString());
             expect(res.body.result.name).toBe(newWord.name);
             expect(res.body.result.wordList).toBe(wordList._id.toHexString());
         });
